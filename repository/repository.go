@@ -11,6 +11,7 @@ type Repository interface {
 	GetUserById(ctx context.Context, id string) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	InsertFlight(ctx context.Context, flight *models.Flight) error
+	ListFlight(ctx context.Context, inputDate string, originCity string) ([]*models.Flight, error)
 	Close() error
 }
 
@@ -38,4 +39,8 @@ func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 
 func InsertFlight(ctx context.Context, flight *models.Flight) error {
 	return implementation.InsertFlight(ctx, flight)
+}
+
+func ListFlight(ctx context.Context, inputDate string, originCity string) ([]*models.Flight, error) {
+	return implementation.ListFlight(ctx, inputDate, originCity)
 }

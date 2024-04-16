@@ -79,6 +79,39 @@ func (repo *PostgresRepository) InsertFlight(ctx context.Context, flight *models
 	return err
 }
 
+func (repo *PostgresRepository) ListFlight(ctx context.Context, inputDate string, originCity string) ([]*models.Flight, error) {
+	var commandSql string = ""
+	if inputDate == "" && originCity == "" {
+		commandSql = "SELECT id, name, departure_date, departure_time, arrival_date, arrival_time, origin_city, destination_city, price FROM flights"
+	} else {
+		commandSql = "SELECT id, name, departure_date, departure_time, arrival_date, arrival_time, origin_city, destination_city, price FROM flights WHERE departure_date = to_date('" + inputDate + "', 'DDMMYYYY') and origin_city ='" + originCity + "'"
+	}
+
+	rows, err := repo.db.QueryContext(ctx, commandSql)
+
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	var flights []*models.Flight
+	for rows.Next() {
+		var flight = models.Flight{}
+		if err = rows.Scan(&flight.Id, &flight.Name, &flight.DepartureDate, &flight.DepartureTime, &flight.ArrivalDate, &flight.ArrivalTime, &flight.OriginCity, &flight.DestinationCity, &flight.Price); err == nil {
+			flights = append(flights, &flight)
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return flights, nil
+}
+
 /*
 
 func (repo *PostgresRepository) InsertPost(ctx context.Context, post *models.Post) error {

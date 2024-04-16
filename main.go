@@ -44,4 +44,5 @@ func BindRouter(s server.Server, r *mux.Router) {
 	r.HandleFunc("/login", handlers.LoginHandler(s)).Methods(http.MethodPost)
 	r.HandleFunc("/me", handlers.MeHandler(s)).Methods(http.MethodGet)
 	r.HandleFunc("/flights", handlers.InsertFlight(s)).Methods(http.MethodPost)
+	r.HandleFunc("/flights", handlers.ListFlightHandler(s)).Methods(http.MethodGet)
 }

@@ -69,3 +69,18 @@ func InsertFlight(s server.Server) http.HandlerFunc {
 		}
 	}
 }
+
+func ListFlightHandler(s server.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+		inputDate := r.URL.Query().Get("date")
+		originCity := r.URL.Query().Get("city")
+		flights, err := repository.ListFlight(r.Context(), inputDate, originCity)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-type", "application/json")
+		json.NewEncoder(w).Encode(flights)
+	}
+}
