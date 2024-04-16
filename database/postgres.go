@@ -112,47 +112,20 @@ func (repo *PostgresRepository) ListFlight(ctx context.Context, inputDate string
 	return flights, nil
 }
 
-/*
-
-func (repo *PostgresRepository) InsertPost(ctx context.Context, post *models.Post) error {
-	_, err := repo.db.ExecContext(ctx, "INSERT INTO posts (id,post_content, user_id) VALUES ($1, $2, $3)", post.Id, post.PostContent, post.UserId)
+func (repo *PostgresRepository) InsertBooking(ctx context.Context, booking *models.Booking) error {
+	_, err := repo.db.ExecContext(ctx, "INSERT INTO bookings (id, flight_id, number_passenger, total_price) VALUES ($1, $2, $3, $4)", booking.Id, booking.FlightId, booking.NumberPassenger, booking.TotalPrice)
 	return err
 }
 
-func (repo *PostgresRepository) GetPostById(ctx context.Context, id string) (*models.Post, error) {
-	rows, err := repo.db.QueryContext(ctx, "SELECT id, post_content, created_at, user_id FROM posts WHERE id = $1", id)
-	defer func() {
-		err = rows.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-	var post = models.Post{}
-	for rows.Next() {
-		if err = rows.Scan(&post.Id, &post.PostContent, &post.CreatedAt, &post.UserId); err == nil {
-			return &post, nil
-		}
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return &post, nil
-}
-
-func (repo *PostgresRepository) UpdatePost(ctx context.Context, post *models.Post, userId string) error {
-	_, err := repo.db.ExecContext(ctx, "UPDATE posts SET post_content = $1 WHERE id = $2 and user_id = $3", post.PostContent, post.Id, userId)
+func (repo *PostgresRepository) InsertBookingDetail(ctx context.Context, bookingDetail *models.BookingDetail) error {
+	_, err := repo.db.ExecContext(ctx, "INSERT INTO booking_detail (id, booking_id, user_id, name_passenger, lastname_passenger, doc_passenger, seat_id, baggage_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", bookingDetail.Id, bookingDetail.BookingId, bookingDetail.UserId, bookingDetail.NamePassenger, bookingDetail.LastNamePassenger, bookingDetail.DocPassenger, bookingDetail.SeatId, bookingDetail.BaggageId)
 	return err
 }
 
-func (repo *PostgresRepository) DeletePost(ctx context.Context, id string, userId string) error {
-	_, err := repo.db.ExecContext(ctx, "DELETE FROM posts WHERE id = $1 and user_id = $2", id, userId)
-	return err
-}
+func (repo *PostgresRepository) ListBooking(ctx context.Context) ([]*models.BookingList, error) {
 
-func (repo *PostgresRepository) ListPost(ctx context.Context, page uint64) ([]*models.Post, error) {
-	rows, err := repo.db.QueryContext(ctx, "SELECT id, post_content, user_id, created_at FROM posts LIMIT $1 OFFSET $2", 2, page*2)
+	rows, err := repo.db.QueryContext(ctx, "SELECT a.id, a.total_price, b.name_passenger, b.lastname_passenger, b.doc_passenger FROM bookings a INNER JOIN booking_detail b ON a.id = b.booking_id")
+
 	if err != nil {
 		return nil, err
 	}
@@ -163,16 +136,40 @@ func (repo *PostgresRepository) ListPost(ctx context.Context, page uint64) ([]*m
 		}
 	}()
 
-	var posts []*models.Post
+	var bookings []*models.BookingList
 	for rows.Next() {
-		var post = models.Post{}
-		if err = rows.Scan(&post.Id, &post.PostContent, &post.UserId, &post.CreatedAt); err == nil {
-			posts = append(posts, &post)
+		var booking = models.BookingList{}
+		if err = rows.Scan(&booking.Id, &booking.TotalPrice, &booking.NamePassenger, &booking.LastNamePassenger, &booking.DocPassenger); err == nil {
+			bookings = append(bookings, &booking)
 		}
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-	return posts, nil
+	return bookings, nil
 }
-*/
+
+func (repo *PostgresRepository) ListBookingById(ctx context.Context, id string) ([]*models.BookingList, error) {
+	rows, err := repo.db.QueryContext(ctx, "SELECT a.id, a.total_price, b.name_passenger, b.lastname_passenger, b.doc_passenger FROM bookings a INNER JOIN booking_detail b ON a.id = b.booking_id WHERE a.id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	var bookings []*models.BookingList
+	for rows.Next() {
+		var booking = models.BookingList{}
+		if err = rows.Scan(&booking.Id, &booking.TotalPrice, &booking.NamePassenger, &booking.LastNamePassenger, &booking.DocPassenger); err == nil {
+			bookings = append(bookings, &booking)
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return bookings, nil
+}
