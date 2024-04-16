@@ -1,9 +1,12 @@
 package database
 
 import (
+	"context"
 	"database/sql"
+	"log"
 
 	_ "github.com/lib/pq"
+	"github.com/rodolfopenia/apuestatotal-eval/models"
 )
 
 type PostgresRepository struct {
@@ -22,19 +25,13 @@ func (repo *PostgresRepository) Close() error {
 	return repo.db.Close()
 }
 
-/*
 func (repo *PostgresRepository) InsertUser(ctx context.Context, user *models.User) error {
-	_, err := repo.db.ExecContext(ctx, "INSERT INTO users (id,email, password) VALUES ($1, $2, $3)", user.Id, user.Email, user.Password)
-	return err
-}
-
-func (repo *PostgresRepository) InsertPost(ctx context.Context, post *models.Post) error {
-	_, err := repo.db.ExecContext(ctx, "INSERT INTO posts (id,post_content, user_id) VALUES ($1, $2, $3)", post.Id, post.PostContent, post.UserId)
+	_, err := repo.db.ExecContext(ctx, "INSERT INTO users (id,name, email, password) VALUES ($1, $2, $3, $4)", user.Id, user.Name, user.Email, user.Password)
 	return err
 }
 
 func (repo *PostgresRepository) GetUserById(ctx context.Context, id string) (*models.User, error) {
-	rows, err := repo.db.QueryContext(ctx, "SELECT id, email FROM users WHERE id = $1", id)
+	rows, err := repo.db.QueryContext(ctx, "SELECT id, name, email FROM users WHERE id = $1", id)
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -43,7 +40,7 @@ func (repo *PostgresRepository) GetUserById(ctx context.Context, id string) (*mo
 	}()
 	var user = models.User{}
 	for rows.Next() {
-		if err = rows.Scan(&user.Id, &user.Email); err == nil {
+		if err = rows.Scan(&user.Id, &user.Name, &user.Email); err == nil {
 			return &user, nil
 		}
 	}
@@ -56,7 +53,7 @@ func (repo *PostgresRepository) GetUserById(ctx context.Context, id string) (*mo
 }
 
 func (repo *PostgresRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	rows, err := repo.db.QueryContext(ctx, "SELECT id, email, password FROM users WHERE email = $1", email)
+	rows, err := repo.db.QueryContext(ctx, "SELECT id, name, email, password FROM users WHERE email = $1", email)
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -65,7 +62,7 @@ func (repo *PostgresRepository) GetUserByEmail(ctx context.Context, email string
 	}()
 	var user = models.User{}
 	for rows.Next() {
-		if err = rows.Scan(&user.Id, &user.Email, &user.Password); err == nil {
+		if err = rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password); err == nil {
 			return &user, nil
 		}
 	}
@@ -75,6 +72,18 @@ func (repo *PostgresRepository) GetUserByEmail(ctx context.Context, email string
 	}
 
 	return &user, nil
+}
+
+func (repo *PostgresRepository) InsertFlight(ctx context.Context, flight *models.Flight) error {
+	_, err := repo.db.ExecContext(ctx, "INSERT INTO flights (id, name, airplane_id, departure_date, departure_time, arrival_date, arrival_time, origin_city, destination_city,price) VALUES ($1, $2, $3, to_date($4, 'DD/MM/YYYY'), $5, to_date($6, 'DD/MM/YYYY'), $7, $8, $9, $10)", flight.Id, flight.Name, flight.AirplaneId, flight.DepartureDate, flight.DepartureTime, flight.ArrivalDate, flight.ArrivalTime, flight.OriginCity, flight.DestinationCity, flight.Price)
+	return err
+}
+
+/*
+
+func (repo *PostgresRepository) InsertPost(ctx context.Context, post *models.Post) error {
+	_, err := repo.db.ExecContext(ctx, "INSERT INTO posts (id,post_content, user_id) VALUES ($1, $2, $3)", post.Id, post.PostContent, post.UserId)
+	return err
 }
 
 func (repo *PostgresRepository) GetPostById(ctx context.Context, id string) (*models.Post, error) {

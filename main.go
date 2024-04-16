@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/rodolfopenia/apuestatotal-eval/handlers"
+	"github.com/rodolfopenia/apuestatotal-eval/middleware"
 	"github.com/rodolfopenia/apuestatotal-eval/server"
 )
 
@@ -37,5 +38,10 @@ func main() {
 }
 
 func BindRouter(s server.Server, r *mux.Router) {
+	r.Use(middleware.CheckAuthMiddleware(s))
 	r.HandleFunc("/", handlers.HomeHandler(s)).Methods(http.MethodGet)
+	r.HandleFunc("/signup", handlers.SignUpHandler(s)).Methods(http.MethodPost)
+	r.HandleFunc("/login", handlers.LoginHandler(s)).Methods(http.MethodPost)
+	r.HandleFunc("/me", handlers.MeHandler(s)).Methods(http.MethodGet)
+	r.HandleFunc("/flights", handlers.InsertFlight(s)).Methods(http.MethodPost)
 }
